@@ -1,0 +1,11 @@
+/.vscode
+
+#readme's
+*.md
+*.txt
+
+#json
+*.json
+
+# ignore zips
+*.7z

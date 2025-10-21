@@ -1,0 +1,3 @@
+MENU: Scripts/LockRingSlot/menu.lua
+PLAYER: Scripts/LockRingSlot/settings.lua
+PLAYER: Scripts/LockRingSlot/player.lua

@@ -142,7 +142,7 @@ local function attemptLock(slotSelection)
 		doneFlag = true
 		errMsg = false
 	elseif not errMsg then
-		message("No " .. ringSlotNames[lockedSlot] .. " Equipped")
+		message("No " .. (lockedSlot and ringSlotNames[lockedSlot] or "Rings") .. " Equipped")
 		errMsg = true
 	end
 end

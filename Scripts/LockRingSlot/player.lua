@@ -187,7 +187,7 @@ local function Update(dt)
 			-- something changed
 			d.print("Ring change detected!")
 			--Cast 1: Locked ring still equipped - check if it's in correct slot or not
-			if Actor.hasEquipped(self, lockedRingData.obj) then
+			if lockedRingData.obj and Actor.hasEquipped(self, lockedRingData.obj) then
 				if lring == lockedRingData.obj and slotSelection == LEFT_RING then
 					d.print("ring still left locked slot -- do nothing")
 				elseif rring == lockedRingData.obj and slotSelection == RIGHT_RING then

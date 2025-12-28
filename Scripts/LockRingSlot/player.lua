@@ -184,6 +184,11 @@ local function Update(dt)
 		end
 		-- compare
 		if lring ~= lastSnapshot.LeftRing or rring ~= lastSnapshot.RightRing then
+			if not lockedRingData then
+				d.print("No locked ring data — skipping")
+				return
+			end
+
 			-- something changed
 			d.print("Ring change detected!")
 			--Cast 1: Locked ring still equipped - check if it's in correct slot or not

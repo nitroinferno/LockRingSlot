@@ -114,7 +114,8 @@ end
 ---@param oppositeSlot_in number
 local function reEquip(newRing, oppositeSlot_in, lockedRing, lockedSlot_in)
 	if not oppositeSlot_in or not lockedSlot_in then return d.print("missing new or locked slot numbers") end
-	d.print("Re-equipping rings...")
+	d.print("Re-equipping rings...\n" .. tostring(lockedRing and Clothing.record(lockedRing).name) .. " to slot " .. tostring(lockedSlot_in).."\n" ..
+	tostring(newRing and Clothing.record(newRing).name) .. " to slot " .. tostring(oppositeSlot_in))
 	local equip = types.Actor.getEquipment(self)
 	if newRing then
 		equip[oppositeSlot_in] = newRing
@@ -142,9 +143,10 @@ local function attemptLock(slotSelection)
 		lockedRingData = result
 		doneFlag = true
 		errMsg = false
+		message("Locking " .. ringSlotNames[slotSelection] .. ":\n" .. Clothing.record(lockedRingData.obj).name)
 	elseif not errMsg then
-		message("No " .. (lockedSlot and ringSlotNames[lockedSlot] or "Rings") .. " Equipped")
-		errMsg = true
+		message("No " .. (lockedSlot and ringSlotNames[lockedSlot] or "Ring") .. " Equipped")
+		errMsg = true -- flag to prevent log spamming
 	end
 end
 
@@ -190,14 +192,19 @@ local function Update(dt)
 			return
 		end
 		-- compare
-		if lring ~= lastSnapshot.LeftRing or rring ~= lastSnapshot.RightRing then
-			if not lockedRingData then
-				d.print("No locked ring data — skipping")
-				return
-			end
+		local leftChanged  = lring ~= lastSnapshot.LeftRing
+		local rightChanged = rring ~= lastSnapshot.RightRing
+
+		if leftChanged or rightChanged then
+			-- if not lockedRingData then
+			-- 	d.print("No locked ring data - skipping")
+			-- 	return
+			-- end
 
 			-- something changed
 			d.print("Ring change detected!")
+			if leftChanged and rightChanged then d.print("simultaneous change!!!") end
+
 			--Cast 1: Locked ring still equipped - check if it's in correct slot or not
 			if lockedRingData and lockedRingData.obj and Actor.hasEquipped(self, lockedRingData.obj) then
 				if lring == lockedRingData.obj and slotSelection == LEFT_RING then
@@ -216,36 +223,36 @@ local function Update(dt)
 			else
 				--Cast 2: Ring is not equipped anymore, check inventory, re-equip if found
 				d.print("Locked ring not equipped, attempting to find in inventory...")
-				if ringInInventory(lockedRingData.rec) then
+				if lockedRingData and ringInInventory(lockedRingData.rec) then
 					d.print("Found ring... re-equipping...")
 					--find the ring that is newly equipped.. 
 					d.print("Left ring is:" .. tostring(lring))
 					d.print("Right ring is:" .. tostring(rring))
 					d.print("Left snapshot:" .. tostring(lastSnapshot.LeftRing))
 					d.print("Right snapshot:" .. tostring(lastSnapshot.RightRing))
-					if rring == lastSnapshot.RightRing then
-						if lring ~= lastSnapshot.LeftRing then
+					if rring == nil and lastSnapshot.RightRing == nil then
+						if leftChanged then
 							--left ring is new!
-							d.print("Left ring is....:" .. tostring(lring))
+							d.print("Left ring ~= Lsnap")
 							reEquip(lring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
 						end
-					elseif lring == lastSnapshot.LeftRing then
-						if rring ~= lastSnapshot.RightRing then
+					elseif lring == nil and lastSnapshot.LeftRing == nil then
+						if rightChanged then
 							--right ring is new!
-							d.print("Left ring is....:" .. tostring(rring))
+							d.print("Right ring ~= Rsnap")
 							reEquip(rring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
 						end
 					end
 					if lring ~= lastSnapshot.LeftRing and lring ~= lastSnapshot.RightRing then
 						--left ring is new!
-						d.print("Left ring is....:" .. tostring(lring))
+						d.print("Left Ring new re-Equipping")
 						reEquip(lring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
 					elseif rring ~= lastSnapshot.LeftRing and rring ~= lastSnapshot.RightRing then
 						--right ring is new!
-						d.print("Right ring is....:" .. tostring(rring))
+						d.print("Right Ring new, re-Equipping")
 						reEquip(rring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
 					else
-						d.print("No new ring found to re-equip alongside locked ring.")
+						d.print("Left or Right not new")
 					end
 				else
 					message("Locked ring missing from inventory!")
@@ -270,5 +277,11 @@ end))
 return {
 	engineHandlers = {
 		onUpdate = Update
+	},
+	eventHandlers = {
+		E_LockRing = lockRing,
+		E_UnlockRing = unlockRing,
+		E_AttemptLock = attemptLock,
+		E_GetSelectedSlot = getSelectedSlot,
 	}
 }

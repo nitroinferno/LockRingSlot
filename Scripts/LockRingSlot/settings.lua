@@ -50,6 +50,15 @@ local function myRings()
 	end
 end
 
+local function getSelectedSlot(selection)
+	local output
+	if selection == "Left" then
+		output = LEFT_RING
+	else
+		output = RIGHT_RING
+	end
+	return output
+end
 
 local function setting(key, renderer, argument, name, description, default)
 	return {
@@ -121,6 +130,20 @@ local prefSettings = storage.playerSection("SettingsPlayer" .. modInfo.name .. "
 
 --groupOptions.settings = {setting("ringSlots", "textLine", {disabled = true}, "Current Equipped Rings", myRings(), "")}
 
+prefSettings:subscribe(async:callback(function(section, key)
+    if key then
+        if key == "slotSelect" then
+			if prefSettings:get("toggleLock") then
+				local slot = prefSettings:get("slotSelect")
+				print(slot)
+				local slotID = getSelectedSlot(slot)
+				self:sendEvent("E_UnlockRing")
+				self:sendEvent("E_AttemptLock",slotID)
+			end
+        end
+    end
+end))
+
 return {
 	engineHandlers = {
 		onInit = function(data)
@@ -134,17 +157,18 @@ return {
 		end,
 		onUpdate = function(dt)
 			if toggle == prefSettings:get("toggleLock") then
-				-- message to display based on logic of rings equipped and their names
-				local msg = (prefSettings:get("slotSelect") == "Left" and
-				(Actor.getEquipment(self, LEFT_RING) and Clothing.record(Actor.getEquipment(self, LEFT_RING)).name) or
-				(Actor.getEquipment(self, RIGHT_RING) and Clothing.record(Actor.getEquipment(self, RIGHT_RING)).name) or "None")
+				-- -- message to display based on logic of rings equipped and their names
+				-- local selectSlot = prefSettings:get("slotSelect")
+				-- local msg = (selectSlot == "Left" and
+				-- (Actor.getEquipment(self, LEFT_RING) and Clothing.record(Actor.getEquipment(self, LEFT_RING)).name) or
+				-- (Actor.getEquipment(self, RIGHT_RING) and Clothing.record(Actor.getEquipment(self, RIGHT_RING)).name) or "None")
 
-				if prefSettings:get("toggleLock") then
-					message("Locking Ring slot " .. prefSettings:get("slotSelect").. ":\n" .. msg)
-				else
-					message("Unlocking Ring slot " .. prefSettings:get("slotSelect") .. ":\n" .. msg)
-				end
-				toggle = not toggle
+				-- if prefSettings:get("toggleLock") then
+				-- 	message("Locking Ring slot " .. selectSlot.. ":\n" .. msg)
+				-- else
+				-- 	message("Unlocking Ring slot " .. selectSlot .. ":\n" .. msg)
+				-- end
+				-- toggle = not toggle
 			end
 			if toggle2 == prefSettings:get("ringSlots") then
 				message(myRings())

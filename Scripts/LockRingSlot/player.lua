@@ -11,14 +11,15 @@ local types = require("openmw.types")
 local ui = require("openmw.ui")
 local I = require('openmw.interfaces')
 local modInfo = require("Scripts.LockRingSlot.modInfo")
+local async = require('openmw.async')
 
 ---@alias GameObject userdata
-local debug = false
 local MODE = I.UI.MODE
 
 local playerSettings = storage.playerSection("SettingsPlayer" .. modInfo.name)
 local userInterfaceSettings = storage.playerSection("SettingsPlayer" .. modInfo.name .. "UI")
 local prefSettings = storage.playerSection("SettingsPlayer" .. modInfo.name .. "Prefs")
+local debug = playerSettings:get("debugMode")
 
 local Actor = types.Actor
 local Clothing = types.Clothing
@@ -120,7 +121,7 @@ local function reEquip(newRing, oppositeSlot_in, lockedRing, lockedSlot_in)
 	end
 	equip[lockedSlot_in] = lockedRing
     types.Actor.setEquipment(self, equip)
-
+	message("Re-equipped locked ring:\n" .. Clothing.record(lockedRing).name)
 	--refresh inventory
 	if I.UI.getMode() == I.UI.MODE.Interface and I.UI.isWindowVisible('Inventory') then
 		local windows={}
@@ -149,9 +150,15 @@ end
 
 local timer = 0
 local lastSnapshot = {}
+local charGenFlag = false
 
 local function Update(dt)
-
+	if not types.Player.isCharGenFinished(self) then
+		if dt > 0 and not charGenFlag then d.print("Character generation not finished, skipping update") charGenFlag = true end
+		return
+	else
+		if charGenFlag then d.print("Character generation finished, resuming updates") charGenFlag = false end
+	end
 	if not playerSettings:get("modEnable") then return end
 	-- If lock is disabled, unlock ring slot and exit
 	if not prefSettings:get("toggleLock") then
@@ -212,6 +219,23 @@ local function Update(dt)
 				if ringInInventory(lockedRingData.rec) then
 					d.print("Found ring... re-equipping...")
 					--find the ring that is newly equipped.. 
+					d.print("Left ring is:" .. tostring(lring))
+					d.print("Right ring is:" .. tostring(rring))
+					d.print("Left snapshot:" .. tostring(lastSnapshot.LeftRing))
+					d.print("Right snapshot:" .. tostring(lastSnapshot.RightRing))
+					if rring == lastSnapshot.RightRing then
+						if lring ~= lastSnapshot.LeftRing then
+							--left ring is new!
+							d.print("Left ring is....:" .. tostring(lring))
+							reEquip(lring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
+						end
+					elseif lring == lastSnapshot.LeftRing then
+						if rring ~= lastSnapshot.RightRing then
+							--right ring is new!
+							d.print("Left ring is....:" .. tostring(rring))
+							reEquip(rring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
+						end
+					end
 					if lring ~= lastSnapshot.LeftRing and lring ~= lastSnapshot.RightRing then
 						--left ring is new!
 						d.print("Left ring is....:" .. tostring(lring))
@@ -220,6 +244,8 @@ local function Update(dt)
 						--right ring is new!
 						d.print("Right ring is....:" .. tostring(rring))
 						reEquip(rring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
+					else
+						d.print("No new ring found to re-equip alongside locked ring.")
 					end
 				else
 					message("Locked ring missing from inventory!")
@@ -234,6 +260,12 @@ local function Update(dt)
     end
 
 end
+
+playerSettings:subscribe(async:callback(function(section, key)
+    if key == "debugMode" then
+        debug = playerSettings:get(key)
+    end
+end))
 
 return {
 	engineHandlers = {

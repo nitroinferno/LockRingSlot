@@ -78,6 +78,7 @@ I.Settings.registerGroup {
 	permanentStorage = false,
 	settings = {
 		setting("modEnable", "checkbox", {}, "Enable Mod", modEnableDescription, true),
+		setting("debugMode", "checkbox", {}, "Enable debug", "Enable debug prints", false),
 	}
 }
 

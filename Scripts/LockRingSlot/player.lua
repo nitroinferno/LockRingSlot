@@ -180,7 +180,7 @@ local function Update(dt)
 	end
 
 	timer = timer + dt
-    if timer >= 1 then
+    if timer >= 1 or dt == 0 then
 		-- get current rings
 		local lring = Actor.getEquipment(self, LEFT_RING)
 		local rring = Actor.getEquipment(self, RIGHT_RING)

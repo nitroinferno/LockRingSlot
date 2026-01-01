@@ -180,7 +180,7 @@ local function Update(dt)
 	end
 
 	timer = timer + dt
-    if timer >= 1 or dt == 0 then
+    if timer >= 0.2 or dt == 0 then
 		-- get current rings
 		local lring = Actor.getEquipment(self, LEFT_RING)
 		local rring = Actor.getEquipment(self, RIGHT_RING)
@@ -246,11 +246,21 @@ local function Update(dt)
 					if lring ~= lastSnapshot.LeftRing and lring ~= lastSnapshot.RightRing then
 						--left ring is new!
 						d.print("Left Ring new re-Equipping")
+						local temp = Actor.getSelectedEnchantedItem(self)
 						reEquip(lring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
+						if temp then
+							Actor.setSelectedEnchantedItem(self, temp) --Hack to re-Equip the last enchanted item spell... since swapping clears..
+							d.print("setting Lring Enchant Spell")
+						end
 					elseif rring ~= lastSnapshot.LeftRing and rring ~= lastSnapshot.RightRing then
 						--right ring is new!
 						d.print("Right Ring new, re-Equipping")
+						local temp = Actor.getSelectedEnchantedItem(self)
 						reEquip(rring, getOppSlot(slotSelection), lockedRingData.obj, slotSelection)
+						if temp then
+							Actor.setSelectedEnchantedItem(self, temp) --Hack to re-Equip the last enchanted item spell... since swapping clears..
+							d.print("setting Rring Enchant Spell")
+						end
 					else
 						d.print("Left or Right not new")
 					end

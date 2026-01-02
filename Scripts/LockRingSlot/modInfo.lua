@@ -7,5 +7,5 @@ Author: Nitro
 
 return {
 	name = "LockRingSlot",
-	version = "1.0.1"
+	version = "1.1.0"
 }

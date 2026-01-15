@@ -150,16 +150,39 @@ local function attemptLock(slotSelection)
 	end
 end
 
+local charGenCheckFlag = false
+--Credit to hyacinth from Timehud
+local function chargenFinished()
+	if types.Player.getBirthSign(self) ~= "" then
+		--charGenFlag = true
+		return true
+	end
+	if types.Player.isCharGenFinished(self) then
+		--charGenFlag = true
+		return true
+	end
+	-- local playerItems = types.Container.inventory(self):getAll()
+	-- for a,b in pairs(playerItems) do
+	-- 	if b.recordId == "chargen statssheet" then
+	-- 		charGenFlag = true
+	-- 		return true
+	-- 	end
+	-- end
+	return false
+end
+
 local timer = 0
 local lastSnapshot = {}
-local charGenFlag = false
+
 
 local function Update(dt)
-	if not types.Player.isCharGenFinished(self) then
-		if dt > 0 and not charGenFlag then d.print("Character generation not finished, skipping update") charGenFlag = true end
+	-- Check for chargen
+	if not chargenFinished() then
+		-- if chargen is not finished, and game is not paused and has not been checked yet then print message
+		if dt > 0 and not charGenCheckFlag then d.print("Character generation not finished, skipping update") charGenCheckFlag = true end
 		return
 	else
-		if charGenFlag then d.print("Character generation finished, resuming updates") charGenFlag = false end
+		if charGenCheckFlag then d.print("Character generation finished, resuming updates") charGenCheckFlag = false end
 	end
 	if not playerSettings:get("modEnable") then return end
 	-- If lock is disabled, unlock ring slot and exit

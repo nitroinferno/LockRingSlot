@@ -176,14 +176,14 @@ local lastSnapshot = {}
 
 
 local function Update(dt)
-	-- Check for chargen
-	if not chargenFinished() then
-		-- if chargen is not finished, and game is not paused and has not been checked yet then print message
-		if dt > 0 and not charGenCheckFlag then d.print("Character generation not finished, skipping update") charGenCheckFlag = true end
-		return
-	else
-		if charGenCheckFlag then d.print("Character generation finished, resuming updates") charGenCheckFlag = false end
-	end
+	-- -- Check for chargen
+	-- if not chargenFinished() then
+	-- 	-- if chargen is not finished, and game is not paused and has not been checked yet then print message
+	-- 	if dt > 0 and not charGenCheckFlag then d.print("Character generation not finished, skipping update") charGenCheckFlag = true end
+	-- 	return
+	-- else
+	-- 	if charGenCheckFlag then d.print("Character generation finished, resuming updates") charGenCheckFlag = false end
+	-- end
 	if not playerSettings:get("modEnable") then return end
 	-- If lock is disabled, unlock ring slot and exit
 	if not prefSettings:get("toggleLock") then
